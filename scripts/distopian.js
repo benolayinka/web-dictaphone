@@ -66,7 +66,7 @@ async function baneTransform(audioBuffer) {
   compressor.connect( ctx.destination );
 
   let underwater = ctx.createBufferSource();
-  underwater.buffer = await ctx.decodeAudioData(await (await fetch("../audio/backgrounds/underwater1.mp3")).arrayBuffer());
+  //underwater.buffer = await ctx.decodeAudioData(await (await fetch("../audio/backgrounds/underwater1.mp3")).arrayBuffer());
   underwater.loop = true;
   let underwaterGain = ctx.createGain();
   underwaterGain.gain.value = 0.5; //0.3;
@@ -75,7 +75,7 @@ async function baneTransform(audioBuffer) {
   underwaterGain.connect(compressor);
 
   let cheer = ctx.createBufferSource();
-  cheer.buffer = await ctx.decodeAudioData(await (await fetch("../audio/concert-crowd.mp3")).arrayBuffer());
+  //cheer.buffer = await ctx.decodeAudioData(await (await fetch("../audio/concert-crowd.mp3")).arrayBuffer());
   cheer.loop = true;
   let cheerGain = ctx.createGain();
   underwaterGain.gain.value = 0.5; //0.3;
@@ -83,8 +83,8 @@ async function baneTransform(audioBuffer) {
   cheer.connect(underwaterGain);
   cheerGain.connect(compressor);
 
-  underwater.start(0);
-  cheer.start(0);
+  //underwater.start(0);
+  //cheer.start(0);
 
   osc.start(0);
   source.start(0);
