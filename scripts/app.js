@@ -166,7 +166,7 @@ function visualize(stream) {
   var dataArray = new Uint8Array(bufferLength);
 
   source.connect(analyser);
-  analyser.connect(audioCtx.destination);
+  //analyser.connect(audioCtx.destination);
 
   draw()
 
