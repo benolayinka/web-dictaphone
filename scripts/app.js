@@ -28,7 +28,19 @@ if (navigator.mediaDevices.getUserMedia) {
 
     visualize(stream);
 
-    record.onclick = function() {
+    //hark
+    var options = {};
+    var speechEvents = hark(stream, options);
+
+    speechEvents.on('speaking', function() {
+      rec();
+    });
+
+    speechEvents.on('stopped_speaking', function() {
+      stp();
+    });
+
+    rec = function() {
       mediaRecorder.start();
       console.log(mediaRecorder.state);
       console.log("recorder started");
@@ -38,7 +50,7 @@ if (navigator.mediaDevices.getUserMedia) {
       record.disabled = true;
     }
 
-    stop.onclick = function() {
+    stp = function() {
       mediaRecorder.stop();
       console.log(mediaRecorder.state);
       console.log("recorder stopped");
@@ -50,10 +62,15 @@ if (navigator.mediaDevices.getUserMedia) {
       record.disabled = false;
     }
 
-    mediaRecorder.onstop = function(e) {
+    mediaRecorder.onstop = async function(e) {
+      //stop hark?
+      speechEvents.stop()
+
       console.log("data available after MediaRecorder.stop() called.");
 
-      var clipName = prompt('Enter a name for your sound clip?','My unnamed clip');
+      var d = new Date;
+      var clipName = d.getTime()
+      //var clipName = prompt('Enter a name for your sound clip?','My unnamed clip');
       console.log(clipName);
       var clipContainer = document.createElement('article');
       var clipLabel = document.createElement('p');
@@ -80,8 +97,34 @@ if (navigator.mediaDevices.getUserMedia) {
       var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
       chunks = [];
       var audioURL = window.URL.createObjectURL(blob);
-      audio.src = audioURL;
+
+      let arrayBuffer = await (await fetch(audioURL)).arrayBuffer();
+      
+      var globalAudioBuffer = globalAudioBuffer = await (new AudioContext()).decodeAudioData(arrayBuffer);
+      //var arrayBuffer = audio.arrayBuffer();
+      //var globalAudioBuffer = await(new AudioContext()).decodeAudioData(arrayBuffer);
+      var outBuffer = await baneTransform(globalAudioBuffer);
+
+      var outputblob = await audioBufferToWaveBlob(outBuffer, outBuffer.length);
+      var outputURL = window.URL.createObjectURL(outputblob);
+
+      audio.src = outputURL;
       console.log("recorder stopped");
+
+      //ben
+      audio.play();
+      audio.onended = function() {
+          var options = {};
+          speechEvents = hark(stream, options);
+
+          speechEvents.on('speaking', function() {
+            rec();
+          });
+
+          speechEvents.on('stopped_speaking', function() {
+            stp();
+          });
+      };
 
       deleteButton.onclick = function(e) {
         evtTgt = e.target;
@@ -123,7 +166,7 @@ function visualize(stream) {
   var dataArray = new Uint8Array(bufferLength);
 
   source.connect(analyser);
-  //analyser.connect(audioCtx.destination);
+  analyser.connect(audioCtx.destination);
 
   draw()
 
@@ -166,6 +209,7 @@ function visualize(stream) {
 
   }
 }
+
 
 window.onresize = function() {
   canvas.width = mainSection.offsetWidth;
